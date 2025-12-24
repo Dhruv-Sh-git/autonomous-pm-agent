@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   backend:
     build: ./backend
@@ -7,8 +5,25 @@ services:
       - "8000:8000"
     env_file:
       - backend/.env
+    depends_on:
+      - db
 
   frontend:
     build: ./frontend
     ports:
       - "3000:3000"
+
+  db:
+    image: postgres:15
+    container_name: apma-db
+    environment:
+      POSTGRES_USER: apma_user
+      POSTGRES_PASSWORD: apma_pass
+      POSTGRES_DB: apma_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
