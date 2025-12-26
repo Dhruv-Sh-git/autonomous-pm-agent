@@ -1,9 +1,18 @@
-import numpy as np
-from app.documents.embeddings import index, document_store, model
+from qdrant_client import QdrantClient
 
+client = QdrantClient(host="qdrant", port=6333)
 
-def retrieve_context(query: str, top_k=3):
-    query_vec = model.encode([query])
-    distances, indices = index.search(np.array(query_vec), top_k)
+def retrieve_chunks(query_embedding, user_id, project_id, limit=5):
+    search = client.search(
+        collection_name="documents",
+        query_vector=query_embedding,
+        limit=limit,
+        query_filter={
+            "must": [
+                {"key": "user_id", "match": {"value": user_id}},
+                {"key": "project_id", "match": {"value": project_id}},
+            ]
+        }
+    )
 
-    return [document_store[i] for i in indices[0]]
+    return [hit.payload["text"] for hit in search]

@@ -5,7 +5,7 @@ from app.db.models import User
 from .otp import generate_otp, verify_otp
 from .jwt import create_jwt
 from .schemas import SendOTPRequest, VerifyOTPRequest
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/auth")
 
 def get_db():
     db = SessionLocal()

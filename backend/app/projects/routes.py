@@ -5,7 +5,7 @@ from app.auth.dependencies import get_current_user
 from app.db.database import SessionLocal
 from app.db.models import Project, User
 
-router = APIRouter(prefix="/projects", tags=["Projects"])
+router = APIRouter(prefix="/projects")
 
 
 def get_db():

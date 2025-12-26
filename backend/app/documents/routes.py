@@ -2,42 +2,48 @@ from fastapi import APIRouter, UploadFile, Depends
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
-from app.db.database import SessionLocal
-from app.db.models import Document, User
+from app.db.database import get_db
+from app.db.models import Document
 from app.documents.parser import extract_text_from_pdf
+from app.documents.chunker import chunk_text
 from app.documents.embeddings import embed_text
+from app.rag.store import store_chunks
 
-router = APIRouter(prefix="/documents", tags=["Documents"])
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+router = APIRouter()
 
 @router.post("/{project_id}")
-async def upload_document(
+def upload_document(
     project_id: str,
     file: UploadFile,
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    current_user=Depends(get_current_user)
 ):
-    # 1️⃣ Extract text from PDF
-    content = extract_text_from_pdf(await file.read())
+    # 1️⃣ Extract text from uploaded file
+    content = extract_text_from_pdf(file)
 
-    # 2️⃣ CREATE EMBEDDINGS HERE 👇
-    embed_text(content)
-
-    # 3️⃣ Save document to DB
-    doc = Document(
-        project_id=project_id,
+    # 2️⃣ Save document metadata in DB
+    document = Document(
         filename=file.filename,
-        content=content
+        project_id=project_id,
+        user_id=current_user.id
     )
-    db.add(doc)
+    db.add(document)
     db.commit()
+    db.refresh(document)
 
-    return {"message": "Document uploaded & embedded"}
+    # 3️⃣ Chunk the extracted text
+    chunks = chunk_text(content)
+
+    # 4️⃣ Create embeddings for each chunk
+    embeddings = embed_text(chunks)
+
+    # 5️⃣ Store chunks & embeddings in vector DB
+    store_chunks(
+        chunks=chunks,
+        embeddings=embeddings,
+        user_id=current_user.id,
+        project_id=project_id,
+        document_id=document.id
+    )
+
+    return {"status": "Document uploaded & indexed"}

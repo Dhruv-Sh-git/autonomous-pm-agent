@@ -24,7 +24,14 @@ def get_current_user(
     token = credentials.credentials
     payload = verify_jwt(token)
 
-    user = db.query(User).filter(User.id == payload["user_id"]).first()
+    user_id = payload.get("sub")   # ✅ FIXED
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token payload"
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

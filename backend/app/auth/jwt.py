@@ -1,16 +1,17 @@
 import jwt
-import os
+from datetime import datetime, timedelta
 from fastapi import HTTPException, status
-from datetime import datetime
+import os
 
-SECRET = os.getenv("JWT_SECRET")
+SECRET = os.getenv("JWT_SECRET", "dev-secret")
 ALGORITHM = "HS256"
 
 
 def create_jwt(user_id: str):
     payload = {
-        "user_id": user_id,
-        "exp": datetime.utcnow().timestamp() + (7 * 24 * 60 * 60)
+        "sub": user_id,
+        "iat": datetime.utcnow(),
+        "exp": datetime.utcnow() + timedelta(days=1)
     }
     return jwt.encode(payload, SECRET, algorithm=ALGORITHM)
 
