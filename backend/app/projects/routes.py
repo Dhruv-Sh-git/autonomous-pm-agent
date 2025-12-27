@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import get_current_user
 from app.db.database import SessionLocal
 from app.db.models import Project, User
+from .schemas import CreateProjectRequest
 
 router = APIRouter(prefix="/projects")
 
@@ -18,11 +19,12 @@ def get_db():
 
 @router.post("/")
 def create_project(
-    name: str,
-    description: str,
+    data: CreateProjectRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user)
 ):
+    name = data.name
+    description = data.description
     project = Project(
         name=name,
         description=description,

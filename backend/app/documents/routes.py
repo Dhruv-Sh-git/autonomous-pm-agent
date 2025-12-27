@@ -9,7 +9,7 @@ from app.documents.chunker import chunk_text
 from app.documents.embeddings import embed_text
 from app.rag.store import store_chunks
 
-router = APIRouter()
+router = APIRouter(prefix="/upload")
 
 @router.post("/{project_id}")
 def upload_document(

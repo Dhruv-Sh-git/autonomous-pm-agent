@@ -12,6 +12,7 @@ from app.auth.routes import router as auth_router
 from app.projects.routes import router as project_router
 from app.documents.routes import router as document_router
 from app.chat.routes import router as chat_router
+from app.agents.routes import router as agent_router
 
 # 1️⃣ Create FastAPI app FIRST
 app = FastAPI(
@@ -36,6 +37,7 @@ app.include_router(auth_router, tags=["Auth"])
 app.include_router(project_router, tags=["Projects"])
 app.include_router(document_router, tags=["Documents"])
 app.include_router(chat_router, tags=["Chat"])
+app.include_router(agent_router, tags=["Agent"])
 
 # 5️⃣ Health check
 @app.get("/")
