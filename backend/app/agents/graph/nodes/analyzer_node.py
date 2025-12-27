@@ -1,6 +1,6 @@
 # backend/app/agents/graph/nodes/analyzer_node.py
 
-from app.agents.analyzer.agent import AnalyzerAgent
+from app.agents.analyser.agent import AnalyzerAgent
 from app.agents.graph.state import AgentState
 
 analyzer = AnalyzerAgent()
