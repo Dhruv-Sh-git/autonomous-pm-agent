@@ -11,8 +11,12 @@ from app.agents.graph.nodes.prd_node import prd_node
 def confidence_router(state: AgentState) -> str:
     confidence = state["analysis"]["confidence"]
     threshold = state["plan"]["confidence_threshold"]
+    iterations = state.get("analysis_iterations", 0)
 
-    if confidence >= threshold:
+    # Hard cap on analysis loops to avoid infinite recursion in the graph.
+    MAX_ANALYSIS_ITERATIONS = 3
+
+    if confidence >= threshold or iterations >= MAX_ANALYSIS_ITERATIONS:
         return "generate_prd"
     return "research"
 

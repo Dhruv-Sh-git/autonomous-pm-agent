@@ -28,5 +28,6 @@ class Document(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     project_id = Column(UUID(as_uuid=True), ForeignKey("projects.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     filename = Column(String)
     content = Column(Text)

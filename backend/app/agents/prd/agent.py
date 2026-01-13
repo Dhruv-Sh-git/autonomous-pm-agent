@@ -1,15 +1,12 @@
 # backend/app/agents/prd/agent.py
 
-from langchain_openai import ChatOpenAI
 from app.agents.graph.state import AgentState
+from app.core.llm import get_agent_llm
 
 
 class PRDGeneratorAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0
-        )
+        self.llm = get_agent_llm()
 
     def run(self, state: AgentState) -> AgentState:
         analysis = state["analysis"]

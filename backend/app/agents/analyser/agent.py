@@ -1,18 +1,41 @@
 # backend/app/agents/analyzer/agent.py
 
-from langchain_openai import ChatOpenAI
-from app.agents.graph.state import AgentState, AnalysisResult
 import json
+from typing import List
+
+from app.agents.graph.state import AgentState, AnalysisResult, ResearchResult
+from app.core.llm import get_agent_llm, parse_llm_json
 
 
 class AnalyzerAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0
-        )
+        self.llm = get_agent_llm()
 
     def run(self, state: AgentState) -> AgentState:
+        # Truncate very large research payloads so prompts stay within
+        # Groq's token limits on the on-demand tier.
+        def _truncate_research(
+            items: List[ResearchResult],
+            max_items: int = 5,
+            max_chars: int = 1200,
+        ) -> List[ResearchResult]:
+            trimmed: List[ResearchResult] = []
+            for item in items[:max_items]:
+                content = item.get("content", "")
+                if isinstance(content, str) and len(content) > max_chars:
+                    content = content[:max_chars]
+                trimmed.append(
+                    {
+                        "source": item.get("source", "unknown"),
+                        "content": content,
+                        "metadata": item.get("metadata", {}),
+                    }
+                )
+            return trimmed
+
+        internal_research = _truncate_research(state["internal_research"])
+        external_research = _truncate_research(state["external_research"])
+
         prompt = f"""
 You are a senior product analyst AI.
 
@@ -20,10 +43,10 @@ Goal:
 {state['goal']}
 
 Internal Research:
-{state['internal_research']}
+{json.dumps(internal_research, indent=2)}
 
 External Research:
-{state['external_research']}
+{json.dumps(external_research, indent=2)}
 
 Tasks:
 1. Extract key insights
@@ -39,7 +62,15 @@ Respond ONLY in JSON:
 """
 
         response = self.llm.invoke(prompt)
-        analysis: AnalysisResult = json.loads(response.content)
+        try:
+            analysis: AnalysisResult = parse_llm_json(response.content)
+        except ValueError:
+          # Fallback: minimal, low-confidence analysis to keep graph running
+            analysis = {
+                "insights": [],
+                "gaps": ["Failed to parse analysis JSON from LLM."],
+                "confidence": 0.0,
+            }
 
         state["analysis"] = analysis
         return state

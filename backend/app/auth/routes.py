@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.db.models import User
-from .otp import generate_otp, verify_otp
+from .otp import generate_otp, verify_otp, send_otp_email
 from .jwt import create_jwt
 from .schemas import SendOTPRequest, VerifyOTPRequest
 router = APIRouter(prefix="/auth")
@@ -18,7 +18,8 @@ def get_db():
 @router.post("/send-otp")
 def send_otp(payload: SendOTPRequest):
     otp = generate_otp(payload.email)
-    print("OTP (dev only):", otp)
+    # Send OTP via email instead of printing to console
+    send_otp_email(payload.email, otp)
     return {"message": "OTP sent"}
 
 @router.post("/verify-otp")

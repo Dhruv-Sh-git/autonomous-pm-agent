@@ -1,16 +1,14 @@
 # backend/app/agents/research/agent.py
 
-from langchain_openai import ChatOpenAI
-from app.agents.graph.state import AgentState
 import json
+
+from app.agents.graph.state import AgentState
+from app.core.llm import get_agent_llm, parse_llm_json
 
 
 class ResearchAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            temperature=0
-        )
+        self.llm = get_agent_llm()
 
     def run(self, state: AgentState) -> dict:
         prompt = f"""
@@ -34,4 +32,8 @@ Respond ONLY in JSON:
 """
 
         response = self.llm.invoke(prompt)
-        return json.loads(response.content)
+        try:
+          return parse_llm_json(response.content)
+        except ValueError:
+          # Fallback to an empty research plan so pipeline can still proceed
+          return {"internal_queries": [], "external_queries": []}

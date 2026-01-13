@@ -49,3 +49,7 @@ class AgentState(TypedDict):
 
     # ---- Execution Metadata ----
     errors: List[str]
+
+    # ---- Control / Diagnostics ----
+    # Counts how many analysis cycles have been run to avoid infinite loops.
+    analysis_iterations: int

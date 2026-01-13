@@ -20,7 +20,8 @@ def run_agent(
         "external_research": [],
         "analysis": None,
         "final_output": None,
-        "errors": []
+        "errors": [],
+        "analysis_iterations": 0,
     }
 
     return graph.invoke(initial_state)

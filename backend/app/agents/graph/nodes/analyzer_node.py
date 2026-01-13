@@ -6,4 +6,7 @@ from app.agents.graph.state import AgentState
 analyzer = AnalyzerAgent()
 
 def analyzer_node(state: AgentState) -> AgentState:
-    return analyzer.run(state)
+    # Run analysis and increment iteration counter to prevent infinite loops
+    state = analyzer.run(state)
+    state["analysis_iterations"] = state.get("analysis_iterations", 0) + 1
+    return state
