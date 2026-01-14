@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
 
 # 1️⃣ Load environment variables FIRST
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
