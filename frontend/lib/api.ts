@@ -1,8 +1,7 @@
 // Prefer explicit base URL env vars, with a sensible local default
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL!;
+  'http://localhost:8000';
 
 export interface ApiError {
   error?: string;
