@@ -30,7 +30,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
-
+  mlflow:
+    build: ./mlops/mlflow
+    ports:
+      - "5000:5000"
   qdrant:
     image: qdrant/qdrant
     container_name: apma-qdrant
@@ -43,3 +46,5 @@ services:
 volumes:
   postgres_data:
   qdrant_data:
+
+  
