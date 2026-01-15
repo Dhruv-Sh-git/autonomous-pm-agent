@@ -26,7 +26,10 @@ app = FastAPI(
 # 2️⃣ CORS (needed for frontend)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # restrict later
+    allow_origins=[
+        "https://autonomous-pm-agent.vercel.app",
+        "http://localhost:3000"
+    ],  # restrict later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,3 +49,6 @@ app.include_router(agent_router, tags=["Agent"])
 @app.get("/")
 def health():
     return {"status": "Backend running 🚀"}
+@app.get("/health")
+def health():
+    return {"status": "ok"}

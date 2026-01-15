@@ -1,8 +1,7 @@
 import os
 import random
-import smtplib
 from datetime import datetime, timedelta
-from email.message import EmailMessage
+import resend
 
 otp_store = {}
 
@@ -26,40 +25,32 @@ def verify_otp(email: str, otp: str) -> bool:
 
 
 def send_otp_email(to_email: str, otp: str) -> None:
-    """Send OTP via SMTP using credentials from environment variables.
+    """Send OTP via Resend Email API.
 
     Expected env vars (set in backend/.env):
-      SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_USE_TLS
+      RESEND_API_KEY, RESEND_FROM_EMAIL
     """
 
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-    from_email = os.getenv("SMTP_FROM", smtp_user or "")
-    use_tls = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+    api_key = os.getenv("RESEND_API_KEY")
+    from_email = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")
 
-    if not smtp_user or not smtp_password:
-        # Fallback to dev-mode logging if email is not configured
-        print("[OTP] SMTP credentials not configured. OTP:", otp)
+    if not api_key:
+        # Fallback to dev-mode logging if Resend is not configured
+        print("[OTP] Resend API key not configured. OTP:", otp)
         return
 
-    msg = EmailMessage()
-    msg["Subject"] = "Your login code"
-    msg["From"] = from_email
-    msg["To"] = to_email
-    msg.set_content(
-        f"Your one-time login code is: {otp}\n\n"
-        "This code will expire in 5 minutes."
-    )
+    resend.api_key = api_key
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            if use_tls:
-                server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.send_message(msg)
-        print(f"[OTP] Sent OTP email to {to_email}")
+        params = {
+            "from": from_email,
+            "to": [to_email],
+            "subject": "Your login code",
+            "html": f"<p>Your one-time login code is: <strong>{otp}</strong></p><p>This code will expire in 5 minutes.</p>"
+        }
+        
+        email_response = resend.Emails.send(params)
+        print(f"[OTP] Sent OTP email to {to_email}, ID: {email_response.get('id')}")
     except Exception as e:
         # Don't crash auth flow if email sending fails; log for now.
         print("[OTP] Failed to send email:", e)
