@@ -50,7 +50,16 @@ def send_otp_email(to_email: str, otp: str) -> None:
         }
         
         email_response = resend.Emails.send(params)
-        print(f"[OTP] Sent OTP email to {to_email}, ID: {email_response.get('id')}")
+        print(f"[OTP] Email sent successfully!")
+        print(f"[OTP] Response: {email_response}")
+        print(f"[OTP] To: {to_email}")
+        print(f"[OTP] From: {from_email}")
+        print(f"[OTP] OTP: {otp}")
     except Exception as e:
         # Don't crash auth flow if email sending fails; log for now.
-        print("[OTP] Failed to send email:", e)
+        print("[OTP] Failed to send email!")
+        print(f"[OTP] Error: {e}")
+        print(f"[OTP] API Key configured: {bool(api_key)}")
+        print(f"[OTP] From: {from_email}")
+        print(f"[OTP] To: {to_email}")
+        print(f"[OTP] OTP for debugging: {otp}")
