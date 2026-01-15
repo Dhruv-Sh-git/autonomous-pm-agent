@@ -8,21 +8,28 @@ from app.core.dependencies import get_vector_retriever, get_tavily_key
 
 research_agent = ResearchAgent()
 
-vector_tool = VectorSearchTool(get_vector_retriever())
+# Initialize retriever - may be None if Qdrant unavailable
+retriever = get_vector_retriever()
+vector_tool = VectorSearchTool(retriever) if retriever else None
 web_tool = WebSearchTool(get_tavily_key())
 
 
 def research_node(state: AgentState) -> AgentState:
     queries = research_agent.run(state)
 
-    if state["plan"]["needs_internal_research"]:
+    if state["plan"]["needs_internal_research"] and vector_tool:
         for q in queries.get("internal_queries", []):
-            results = vector_tool.run(
-                query=q,
-                user_id=state["user_id"],
-                project_id=state["project_id"]
-            )
-            state["internal_research"].extend(results)
+            try:
+                results = vector_tool.run(
+                    query=q,
+                    user_id=state["user_id"],
+                    project_id=state["project_id"]
+                )
+                state["internal_research"].extend(results)
+            except Exception as e:
+                print(f"[Research] Vector search failed: {e}")
+    elif state["plan"]["needs_internal_research"]:
+        print("[Research] Vector search not available, skipping internal research")
 
     if state["plan"]["needs_external_research"]:
         for q in queries.get("external_queries", []):
